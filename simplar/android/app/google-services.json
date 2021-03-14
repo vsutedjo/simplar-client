@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "178872796065",
+    "project_id": "simplificar-307517",
+    "storage_bucket": "simplificar-307517.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:178872796065:android:fe9dd44919fdcc5ca681e0",
+        "android_client_info": {
+          "package_name": "com.example.simplificar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "178872796065-u42h78nkhh03scf9ldq0oj53fpuo7lh8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5Tqd8u7jTl0WV1JEaGmz8max3ariIz0k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "178872796065-u42h78nkhh03scf9ldq0oj53fpuo7lh8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
