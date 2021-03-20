@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:simplAR/helpers/demo_texts.dart';
+import 'package:simplAR/models/painterTextLine.dart';
 
 import '../../helpers/text_detector_painter.dart';
 import '../../main.dart';
@@ -18,11 +18,12 @@ class CameraScreen extends StatefulWidget {
 class _CameraScreenState extends State<CameraScreen> {
   CameraController _controller;
   Future<void> _initializeControllerFuture;
-  List<TextLine> textLines = [];
   String _imagePath;
   Size _imageSize;
-  List<String> _simpleText;
+  List<List<PainterTextLine>> textLines = [];
   bool currShowingImage = false;
+
+  bool _isDemo = true;
   @override
   void initState() {
     super.initState();
@@ -48,33 +49,65 @@ class _CameraScreenState extends State<CameraScreen> {
     _getImageSize(File(_imagePath));
     TextRecognizer recognizeText = FirebaseVision.instance.cloudTextRecognizer();
     VisionText readText = await recognizeText.processImage(image);
-    String wholeText = "";
-    for (TextBlock block in readText.blocks) {
-      for (TextLine line in block.lines) {
-        textLines.add(line);
 
-        // Text body
-        if (line.text.endsWith("-")) {
-          wholeText += line.text.substring(0, line.text.length - 1);
-        } else {
-          wholeText += line.text + " ";
+    if (_isDemo) {
+      for (TextBlock block in readText.blocks) {
+        if (block.text.contains("Workinstruction Section B4")) {
+          List<PainterTextLine> blockLines = [];
+          for (int i = 0; i < block.lines.length; i++) {
+            String simpleText = workinstructionTitle[i % workinstructionTitle.length];
+            Rect boundingBox = block.lines[i].boundingBox;
+            blockLines.add(PainterTextLine(simpleText, boundingBox));
+          }
+          textLines.add(blockLines);
+        } else if (block.text.contains("The M6 fine-thread")) {
+          List<PainterTextLine> blockLines = [];
+          for (int i = 0; i < block.lines.length; i++) {
+            String simpleText = workinstructionText1[i % workinstructionText1.length];
+            Rect boundingBox = block.lines[i].boundingBox;
+            blockLines.add(PainterTextLine(simpleText, boundingBox));
+          }
+          textLines.add(blockLines);
+        } else if (block.text.contains("It is to be ensured that the area")) {
+          List<PainterTextLine> blockLines = [];
+          for (int i = 0; i < block.lines.length; i++) {
+            String simpleText = workinstructionText2[i % workinstructionText2.length];
+            Rect boundingBox = block.lines[i].boundingBox;
+            blockLines.add(PainterTextLine(simpleText, boundingBox));
+          }
+          textLines.add(blockLines);
         }
       }
+      setState(() {});
     }
-    print(wholeText);
-    List<String> data = wholeText.split(RegExp(r"[:.]"))..removeWhere((s) => s == " ");
-    print(data);
-    setState(() {});
+    /*else {
+      String wholeText = "";
+      for (TextBlock block in readText.blocks) {
+        print("Text block: ${block.text}");
+        for (TextLine line in block.lines) {
+          textLines.add(line);
 
-    http
-        .post(Uri.parse("https://webhook.site/d493c654-cca6-4321-8e26-4aad70aa24b9"), body: jsonEncode({"data": data}))
-        .then((result) {
-      var simpleText = (jsonDecode(result.body)["data"] as List<dynamic>).map((i) => "$i").toList();
-      print(simpleText);
-      setState(() {
-        _simpleText = simpleText;
+          // Text body
+          if (line.text.endsWith("-")) {
+            wholeText += line.text.substring(0, line.text.length - 1);
+          } else {
+            wholeText += line.text + " ";
+          }
+        }
+      }
+      print(wholeText);
+      List<String> data = wholeText.split(RegExp(r"[:.]"))..removeWhere((s) => s == " ");
+      print(data);
+      setState(() {});
+
+      http
+          .post(Uri.parse("https://webhook.site/d493c654-cca6-4321-8e26-4aad70aa24b9"),
+              body: jsonEncode({"data": data}))
+          .then((result) {
+        var simpleText = (jsonDecode(result.body)["data"] as List<dynamic>).map((i) => "$i").toList();
+        print(simpleText);
       });
-    });
+    }*/
   }
 
   Future<void> _getImageSize(File imageFile) async {
@@ -94,14 +127,6 @@ class _CameraScreenState extends State<CameraScreen> {
     setState(() {
       _imageSize = imageSize;
     });
-  }
-
-  String _getTextDisplay() {
-    var res = "";
-    for (TextLine line in textLines) {
-      res += line.text + "\n";
-    }
-    return res;
   }
 
   Widget cameraWidget(context) {
@@ -126,7 +151,7 @@ class _CameraScreenState extends State<CameraScreen> {
         title: Text("SimplAR",
             style: TextStyle(
               color: Colors.white,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               fontSize: 30,
             )),
         backgroundColor: Colors.transparent,
@@ -146,11 +171,10 @@ class _CameraScreenState extends State<CameraScreen> {
                     )
                   else
                     CameraPreview(_controller),
-                  if (_simpleText != null)
-                    for (int i = 0; i < textLines.length; i++)
-                      CustomPaint(
-                          painter: TextDetectorPainter(_imageSize, textLines[i].elements, _simpleText[i],
-                              showSimpleText: true))
+
+                  for (var block in textLines)
+                    for (var line in block)
+                      CustomPaint(painter: TextDetectorPainter(_imageSize, line)) //!_showOriginalText))
                 ],
               );
             } else {
@@ -160,34 +184,40 @@ class _CameraScreenState extends State<CameraScreen> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        child: currShowingImage && textLines.isEmpty
-            ? CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation(Colors.white),
-              )
-            : Icon(currShowingImage ? Icons.camera_alt : Icons.translate, color: Colors.white),
-        onPressed: () async {
-          try {
-            // If we come from the preview, go back to camera
-            if (currShowingImage) {
-              setState(() {
-                textLines = [];
-                currShowingImage = false;
-              });
-              // If we are in camera, take a picture and go to preview mode
-            } else {
-              await _initializeControllerFuture;
-              var img = await _controller.takePicture();
-              setState(() {
-                _imagePath = img.path;
-                currShowingImage = true;
-              });
-              _analyzeImage();
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: FloatingActionButton(
+          child: currShowingImage && textLines.isEmpty
+              ? CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation(Colors.white),
+                )
+              : Icon(currShowingImage ? Icons.close : Icons.camera, color: Colors.white),
+          onPressed: () async {
+            try {
+              // If we come from the preview, go back to camera
+              if (currShowingImage) {
+                setState(() {
+                  textLines = [];
+                  currShowingImage = false;
+                });
+                // If we are in camera, take a picture and go to preview mode
+              } else {
+                setState(() {
+                  textLines = [];
+                });
+                // await _initializeControllerFuture;
+                var img = await _controller.takePicture();
+                setState(() {
+                  _imagePath = img.path;
+                  currShowingImage = true;
+                });
+                _analyzeImage();
+              }
+            } catch (e) {
+              print(e);
             }
-          } catch (e) {
-            print(e);
-          }
-        },
+          },
+        ),
       ),
     );
   }

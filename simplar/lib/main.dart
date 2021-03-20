@@ -28,7 +28,7 @@ class MainApp extends StatelessWidget {
         ),
         home: FutureBuilder(
             initialData: LoadingScreen(),
-            future: Future.delayed(Duration(seconds: 2), () {
+            future: Future.delayed(Duration(seconds: 3), () {
               return CameraScreen();
             }),
             builder: (context, snapshot) {

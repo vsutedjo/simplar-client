@@ -1,49 +1,37 @@
-import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
+import 'package:simplAR/models/painterTextLine.dart';
 
 class TextDetectorPainter extends CustomPainter {
-  TextDetectorPainter(this.absoluteImageSize, this.elements, this.simpleText, {this.showSimpleText = true});
+  TextDetectorPainter(this.absoluteImageSize, this.textLine);
 
   final Size absoluteImageSize;
-  final List<TextElement> elements;
-  final String simpleText;
-  bool showSimpleText;
+  final PainterTextLine textLine;
+
   @override
   void paint(Canvas canvas, Size size) {
     final double scaleX = size.width / absoluteImageSize.width;
     final double scaleY = size.height / absoluteImageSize.height;
 
-    Rect scaleRect(TextContainer container) {
+    Rect scaleRect(Rect boundingBox) {
       return Rect.fromLTRB(
-        container.boundingBox.left * scaleX - 1,
-        container.boundingBox.top * scaleY - 1,
-        container.boundingBox.right * scaleX + 1,
-        container.boundingBox.bottom * scaleY + 1,
+        boundingBox.left * scaleX - 1,
+        boundingBox.top * scaleY - 1,
+        boundingBox.right * scaleX + 1,
+        boundingBox.bottom * scaleY + 1,
       );
     }
 
     final Paint paint = Paint()
       ..style = PaintingStyle.fill
-      ..color = Colors.white70;
+      ..color = Colors.white.withOpacity(0.9);
 
-    if (showSimpleText) {
-      // Draw the white box over the original text
-      Rect wholeRect = Rect.fromPoints(scaleRect(elements.first).bottomLeft, scaleRect(elements.last).topRight);
-      canvas.drawRect(wholeRect, paint);
+    // Draw the white box over the original text
+    Rect wholeRect =
+        Rect.fromPoints(scaleRect(textLine.boundingBox).bottomLeft, scaleRect(textLine.boundingBox).topRight);
+    canvas.drawRect(wholeRect, paint);
 
-      // To prevent differently scaled texts for a textline, calculate avg. size
-      double avgHeight =
-          elements.map((element) => scaleRect(element).height).toList().reduce((a, b) => a + b) / elements.length;
-
-      // Draw the simple text line at the coordinate of the detected original line
-      drawName(canvas, simpleText, avgHeight, wholeRect.left, wholeRect.top);
-    } else {
-      // Draw word for word
-      for (TextElement element in elements) {
-        canvas.drawRect(scaleRect(element), paint);
-        drawName(canvas, element.text, scaleRect(element).height, scaleRect(element).left, scaleRect(element).top);
-      }
-    }
+    // Draw the simple text line at the coordinate of the detected original line
+    drawName(canvas, textLine.text, scaleRect(textLine.boundingBox).height, wholeRect.left, wholeRect.top);
   }
 
   void rotate(Canvas canvas, double cx, double cy, double angle) {
