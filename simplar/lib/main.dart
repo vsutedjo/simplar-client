@@ -1,7 +1,9 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:simplAR/screens/camera_screen/camera_screen.dart';
+import 'package:simplAR/screens/loading_screen/loading_screen.dart';
 
-import 'main_screen.dart';
+import 'res/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,11 +21,18 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SimplificAR',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MainScreen(title: 'SimplificAR'),
-    );
+        title: 'SimplAR',
+        theme: ThemeData(
+          primarySwatch: kOrange,
+          fontFamily: "Product-Sans",
+        ),
+        home: FutureBuilder(
+            initialData: LoadingScreen(),
+            future: Future.delayed(Duration(seconds: 2), () {
+              return CameraScreen();
+            }),
+            builder: (context, snapshot) {
+              return snapshot.data;
+            }));
   }
 }

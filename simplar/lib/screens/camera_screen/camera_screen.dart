@@ -7,18 +7,15 @@ import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import 'helpers/text_detector_painter.dart';
-import 'main.dart';
+import '../../helpers/text_detector_painter.dart';
+import '../../main.dart';
 
-class MainScreen extends StatefulWidget {
-  MainScreen({Key key, this.title}) : super(key: key);
-  final String title;
-
+class CameraScreen extends StatefulWidget {
   @override
-  _MainScreenState createState() => _MainScreenState();
+  _CameraScreenState createState() => _CameraScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _CameraScreenState extends State<CameraScreen> {
   CameraController _controller;
   Future<void> _initializeControllerFuture;
   List<TextLine> textLines = [];
@@ -125,40 +122,50 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        centerTitle: true,
+        title: Text("SimplAR",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 30,
+            )),
+        backgroundColor: Colors.transparent,
       ),
-      body: FutureBuilder<void>(
-        future: _initializeControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                if (currShowingImage)
-                  Image.file(
-                    File(_imagePath),
-                    fit: BoxFit.fill,
-                  )
-                else
-                  CameraPreview(_controller),
-                if (_simpleText != null)
-                  for (int i = 0; i < textLines.length; i++)
-                    CustomPaint(
-                        painter: TextDetectorPainter(_imageSize, textLines[i].elements, _simpleText[i],
-                            showSimpleText: true))
-              ],
-            );
-          } else {
-            return Center(child: CircularProgressIndicator());
-          }
-        },
+      body: SafeArea(
+        child: FutureBuilder<void>(
+          future: _initializeControllerFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (currShowingImage)
+                    Image.file(
+                      File(_imagePath),
+                      fit: BoxFit.fill,
+                    )
+                  else
+                    CameraPreview(_controller),
+                  if (_simpleText != null)
+                    for (int i = 0; i < textLines.length; i++)
+                      CustomPaint(
+                          painter: TextDetectorPainter(_imageSize, textLines[i].elements, _simpleText[i],
+                              showSimpleText: true))
+                ],
+              );
+            } else {
+              return Center(child: CircularProgressIndicator());
+            }
+          },
+        ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         child: currShowingImage && textLines.isEmpty
             ? CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation(Colors.white),
               )
-            : Icon(currShowingImage ? Icons.camera_alt : Icons.translate),
+            : Icon(currShowingImage ? Icons.camera_alt : Icons.translate, color: Colors.white),
         onPressed: () async {
           try {
             // If we come from the preview, go back to camera
