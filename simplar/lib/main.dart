@@ -31,7 +31,6 @@ class _MainAppState extends State<MainApp> {
       ResolutionPreset.medium,
       enableAudio: false,
     );
-    await _controller.setFlashMode(FlashMode.off);
     _initializeControllerFuture = _controller.initialize();
   }
 

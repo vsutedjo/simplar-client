@@ -37,7 +37,6 @@ List<SimpleTextLine> getDemoText(TextBlock block) {
 }
 
 List<PainterTextLine> _generateTextLine(TextBlock block, List<String> content) {
-  print("Generating text line for block ${block.text}");
   List<PainterTextLine> blockLines = [];
   for (int i = 0; i < block.lines.length; i++) {
     String simpleText = content[i % content.length];

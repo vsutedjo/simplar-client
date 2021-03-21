@@ -44,7 +44,7 @@ class TextDetectorPainter extends CustomPainter {
     TextSpan span = TextSpan(
         style: TextStyle(
           color: Colors.black,
-          fontSize: size,
+          fontSize: size - 3,
         ),
         text: text);
     TextPainter tp = TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);

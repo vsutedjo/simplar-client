@@ -39,7 +39,6 @@ class _CameraScreenState extends State<CameraScreen> {
     showInAR = true;
     if (_isDemo) {
       for (TextBlock block in readText.blocks) {
-        print("Processing block: ${block.text}");
         textLines.add(getDemoText(block));
       }
     } else {
@@ -54,7 +53,6 @@ class _CameraScreenState extends State<CameraScreen> {
     if (readText.blocks.any((e) => e.text.length > 200)) {
       showInAR = false;
     }
-    print("showInAR: $showInAR");
     setState(() {});
   }
 
@@ -117,8 +115,7 @@ class _CameraScreenState extends State<CameraScreen> {
               CameraPreview(widget.controller),
             if (showInAR)
               for (var block in textLines)
-                for (var line in block)
-                  CustomPaint(painter: TextDetectorPainter(_imageSize, line))
+                for (var line in block) CustomPaint(painter: TextDetectorPainter(_imageSize, line))
           ],
         ),
       ),
@@ -144,6 +141,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 setState(() {
                   textLines = [];
                 });
+                await widget.controller.setFlashMode(FlashMode.off);
                 var img = await widget.controller.takePicture();
                 setState(() {
                   _imagePath = img.path;
