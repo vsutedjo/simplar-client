@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:simplAR/models/painterTextLine.dart';
+import 'package:simplAR/models/simpleTextLine.dart';
 
 class TextDetectorPainter extends CustomPainter {
   TextDetectorPainter(this.absoluteImageSize, this.textLine);
