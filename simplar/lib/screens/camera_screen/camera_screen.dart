@@ -6,8 +6,8 @@ import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:simplAR/helpers/test_detector_painter.dart';
 import 'package:simplAR/helpers/test_texts.dart';
+import 'package:simplAR/helpers/text_detector_painter.dart';
 import 'package:simplAR/models/simpleTextLine.dart';
 import 'package:simplAR/screens/plaintext_screen/plaintext_screen.dart';
 
@@ -28,7 +28,7 @@ class _CameraScreenState extends State<CameraScreen> {
   bool currShowingImage = false;
   bool showInAR = true;
 
-  bool _isDemo = false;
+  bool _isTestRun = false;
 
   Future<void> _analyzeImage() async {
     var image = FirebaseVisionImage.fromFilePath(_imagePath);
@@ -37,7 +37,7 @@ class _CameraScreenState extends State<CameraScreen> {
     VisionText readText = await recognizeText.processImage(image);
 
     showInAR = true;
-    if (_isDemo) {
+    if (_isTestRun) {
       if (readText.blocks.any((e) => e.text.length > 200)) {
         showInAR = false;
       }
