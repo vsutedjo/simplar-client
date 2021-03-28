@@ -7,11 +7,18 @@ class PainterTextLine extends SimpleTextLine {
 }
 
 class PlaintextEntryLine extends SimpleTextLine {
-  final String assetName;
-  PlaintextEntryLine(String text, this.assetName) : super(text);
+  final String imageUrl;
+
+  PlaintextEntryLine(String text, this.imageUrl) : super(text);
+
+  PlaintextEntryLine.fromMap(Map<String, String> map)
+      : imageUrl = map["imageUrl"],
+        super.fromMap(map);
 }
 
 class SimpleTextLine {
   final String text;
   SimpleTextLine(this.text);
+
+  SimpleTextLine.fromMap(Map<String, String> map) : text = map["text"];
 }

@@ -3,7 +3,7 @@ import 'package:simplAR/models/simpleTextLine.dart';
 import 'package:simplAR/res/theme.dart';
 
 class PlaintextScreen extends StatelessWidget {
-  final List<SimpleTextLine> entries;
+  final List<PlaintextEntryLine> entries;
 
   const PlaintextScreen(this.entries);
 
@@ -15,9 +15,8 @@ class PlaintextScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: ListView(children: [
             ...entries
-                .map((entry) => entry.runtimeType == PlaintextEntryLine
-                    ? PlaintextEntryWithImage(entry as PlaintextEntryLine)
-                    : PlaintextEntryWithoutImage(entry))
+                .map((entry) =>
+                    entry.imageUrl != "" ? PlaintextEntryWithImage(entry) : PlaintextEntryWithoutImage(entry))
                 .toList(),
             ElevatedButton(
                 style: ButtonStyle(backgroundColor: MaterialStateProperty.all(kOrange)),
@@ -57,7 +56,7 @@ class PlaintextEntryWithImage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Image(
-              image: AssetImage("lib/assets/images/${entry.assetName}.png"),
+              image: NetworkImage(entry.imageUrl), //AssetImage("lib/assets/images/${entry.imageUrl}.png"),
               width: MediaQuery.of(context).size.width * 0.25,
             ),
           ),

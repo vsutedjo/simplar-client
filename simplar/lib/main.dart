@@ -31,7 +31,7 @@ class _MainAppState extends State<MainApp> {
       ResolutionPreset.medium,
       enableAudio: false,
     );
-    _initializeControllerFuture = _controller.initialize();
+    _initializeControllerFuture = Future.delayed(Duration(seconds: 3), () => _controller.initialize());
   }
 
   @override

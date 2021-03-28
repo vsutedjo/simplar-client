@@ -6,11 +6,10 @@ import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:simplAR/helpers/demo_texts.dart';
+import 'package:simplAR/helpers/test_detector_painter.dart';
+import 'package:simplAR/helpers/test_texts.dart';
 import 'package:simplAR/models/simpleTextLine.dart';
 import 'package:simplAR/screens/plaintext_screen/plaintext_screen.dart';
-
-import '../../helpers/text_detector_painter.dart';
 
 class CameraScreen extends StatefulWidget {
   final CameraController controller;
@@ -24,11 +23,12 @@ class CameraScreen extends StatefulWidget {
 class _CameraScreenState extends State<CameraScreen> {
   String _imagePath;
   Size _imageSize;
-  List<List<SimpleTextLine>> textLines = [];
+  List<List<SimpleTextLine>> ARTextLines = [];
+  List<PlaintextEntryLine> plainTextLines = [];
   bool currShowingImage = false;
   bool showInAR = true;
 
-  bool _isDemo = true;
+  bool _isDemo = false;
 
   Future<void> _analyzeImage() async {
     var image = FirebaseVisionImage.fromFilePath(_imagePath);
@@ -38,21 +38,36 @@ class _CameraScreenState extends State<CameraScreen> {
 
     showInAR = true;
     if (_isDemo) {
+      if (readText.blocks.any((e) => e.text.length > 200)) {
+        showInAR = false;
+      }
       for (TextBlock block in readText.blocks) {
-        textLines.add(getDemoText(block));
+        if (showInAR)
+          ARTextLines.add(getARDemoText(block));
+        else
+          plainTextLines.add(getPlainDemoText(block));
       }
     } else {
-      http
-          .post(Uri.parse("http://35.242.217.151:8080/"),
-              body: jsonEncode({"data": readText.blocks.map((block) => block.text).toList(), "ai": "default"}))
-          .then((result) {
-        var simpleText = (jsonDecode(result.body)["data"] as List<dynamic>).map((i) => "$i").toList();
-        print(simpleText);
-      });
+      var list = readText.blocks.map((block) => block.text).toList();
+      var json = jsonEncode({"data": list, "useGPT3": false, "enableSummarizer": false});
+      Uri uri = Uri.http("35.242.202.87:8080", "");
+      final response = await http.post(uri,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: json);
+      if (response.statusCode == 200) {
+        // Don't show in AR when coming from server
+        showInAR = false;
+        print(response.body);
+        var responseJson = jsonDecode(response.body) as Map<String, dynamic>;
+        var entries = responseJson["data"] as List<Map<String, String>>;
+        plainTextLines = entries.map((entry) => PlaintextEntryLine.fromMap(entry)).toList();
+      } else {
+        throw Exception(response.toString());
+      }
     }
-    if (readText.blocks.any((e) => e.text.length > 200)) {
-      showInAR = false;
-    }
+
     setState(() {});
   }
 
@@ -114,7 +129,7 @@ class _CameraScreenState extends State<CameraScreen> {
             else
               CameraPreview(widget.controller),
             if (showInAR)
-              for (var block in textLines)
+              for (var block in ARTextLines)
                 for (var line in block) CustomPaint(painter: TextDetectorPainter(_imageSize, line))
           ],
         ),
@@ -123,7 +138,7 @@ class _CameraScreenState extends State<CameraScreen> {
       floatingActionButton: Padding(
         padding: const EdgeInsets.all(8.0),
         child: FloatingActionButton(
-          child: currShowingImage && textLines.isEmpty
+          child: currShowingImage && ARTextLines.isEmpty
               ? CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation(Colors.white),
                 )
@@ -133,13 +148,14 @@ class _CameraScreenState extends State<CameraScreen> {
               // If we come from the preview, go back to camera
               if (currShowingImage) {
                 setState(() {
-                  textLines = [];
+                  ARTextLines = [];
                   currShowingImage = false;
                 });
                 // If we are in camera, take a picture and go to preview mode
               } else {
                 setState(() {
-                  textLines = [];
+                  ARTextLines = [];
+                  plainTextLines = [];
                 });
                 await widget.controller.setFlashMode(FlashMode.off);
                 var img = await widget.controller.takePicture();
@@ -148,14 +164,11 @@ class _CameraScreenState extends State<CameraScreen> {
                   currShowingImage = true;
                 });
                 await _analyzeImage();
+
+                // If we want to show a new screen mit images
                 if (!showInAR) {
-                  assert(textLines.every((element) => element.runtimeType != PainterTextLine));
-                  List<SimpleTextLine> lines = [];
-                  for (var block in textLines) {
-                    lines.addAll(block);
-                  }
                   Navigator.of(context)
-                      .push(MaterialPageRoute(builder: (context) => PlaintextScreen(lines)))
+                      .push(MaterialPageRoute(builder: (context) => PlaintextScreen(plainTextLines)))
                       .whenComplete(() => setState(() {
                             currShowingImage = false;
                           }));
