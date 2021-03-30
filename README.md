@@ -1,7 +1,7 @@
 #  SimplificAR Frontend App
 The Frontend App is written in Flutter. It shows the camera feed and when the user takes a photo, the image is analyzed for text. The found text is then sent to the backend using REST API, and the app awaits the response. When the simplified text returns, it is shown in the image as a replacement of the original text.
 
-![gif](https://user-images.githubusercontent.com/37225049/113060209-a137ea80-91b0-11eb-84f4-240dd8ec7857.gif)
+![gif](https://user-images.githubusercontent.com/37225049/113060343-cb89a800-91b0-11eb-9a98-ae4b0deda43b.gif)
 
 # How to run the code
 Install Android Studio and the Flutter SDKs according to the Flutter install guide. 
