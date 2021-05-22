@@ -49,13 +49,16 @@ class _CameraScreenState extends State<CameraScreen> {
       }
     } else {
       var list = readText.blocks.map((block) => block.text).toList();
+      print("Detected $list");
       var json = jsonEncode({"data": list, "useGPT3": false, "enableSummarizer": false});
       Uri uri = Uri.http("35.242.202.87:8080", "");
+      print("Sending to backend...");
       final response = await http.post(uri,
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
           },
           body: json);
+      print("Got response...${response.statusCode}");
       if (response.statusCode == 200) {
         // Don't show in AR when coming from server
         showInAR = false;
@@ -168,7 +171,8 @@ class _CameraScreenState extends State<CameraScreen> {
                 // If we want to show a new screen mit images
                 if (!showInAR) {
                   Navigator.of(context)
-                      .push(MaterialPageRoute(builder: (context) => PlaintextScreen(plainTextLines)))
+                      .push(
+                          MaterialPageRoute(builder: (context) => PlaintextScreen(plainTextLines)))
                       .whenComplete(() => setState(() {
                             currShowingImage = false;
                           }));
