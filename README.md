@@ -12,4 +12,5 @@ Keep in mind that we are limiting access to our backend to save costs, so if you
 
 # SimplAR other artifacts
 Backend/ML code: https://github.com/sutedalm/simplar-server
+
 Prototype Tutorial: https://www.figma.com/proto/n2wDODd86daHAftzPWQ0gZ/SimplAR?page-id=0%3A1&node-id=209%3A5&viewport=4660%2C-9769%2C0.6433714032173157&scaling=scale-down 
